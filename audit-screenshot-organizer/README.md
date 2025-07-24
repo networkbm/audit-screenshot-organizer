@@ -17,7 +17,7 @@ pip install watchdog
 ## Usage
 To start the GUI application:
 ```bash
-python screenshot_organizer.py
+python3 screenshot_organizer.py
 ```
 
 1. **Configure Options**  
