@@ -10,7 +10,6 @@ import threading
 import time
 import queue
 
-# Default Windows screenshot folder
 DEFAULT_WINDOWS_SCREENSHOT = os.path.join(os.path.expanduser("~"), "Pictures", "Screenshots")
 DEFAULT_SCREENSHOT_FOLDER = DEFAULT_WINDOWS_SCREENSHOT
 
@@ -21,7 +20,6 @@ class ScreenshotHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory:
             filename = os.path.basename(event.src_path)
-            # Only handle PNG files (typical Windows screenshots)
             if filename.lower().endswith(".png"):
                 self.app.file_queue.put(event.src_path)
 
@@ -86,7 +84,6 @@ class ScreenshotOrganizerApp:
         ttk.Button(button_frame, text="New Session", command=self.new_session).grid(row=0, column=1, padx=5)
         ttk.Button(button_frame, text="Stop Watching", command=self.stop_watching).grid(row=0, column=2, padx=5)
 
-        # Show current session label
         self.current_session_label = tk.Label(self.root, text="Current Session: None", bg="#2b2b2b", fg="white", font=("Arial", 12))
         self.current_session_label.pack(pady=5)
 
@@ -154,7 +151,7 @@ class ScreenshotOrganizerApp:
 
     def move_screenshot(self, src_path):
         try:
-            time.sleep(0.3)  # short delay for file completion
+            time.sleep(0.3)
             if not os.path.exists(src_path):
                 return
             filename = os.path.basename(src_path)
@@ -171,6 +168,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# Replace with actual screenshot_organizer.py code
