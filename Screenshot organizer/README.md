@@ -12,7 +12,3 @@ A Python GUI application that automatically organizes screenshots into session-b
 ```bash
 pip install -r requirements.txt
 
-## Usage
-```bash
-python screenshot_organizer.py
-
