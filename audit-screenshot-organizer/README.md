@@ -28,6 +28,3 @@ python screenshot_organizer.py
 2. **Start**: Click **Start Session** and take screenshots.  
 3. **New Session**: Click **New Session** to create the next evidence folder.  
 4. **Stop**: Click **Stop Watching** to stop monitoring.
-
-## License
-MIT License
