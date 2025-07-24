@@ -72,5 +72,3 @@ You will receive a confirmation message:
 
 ---
 
-## License
-MIT License
