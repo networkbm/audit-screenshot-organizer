@@ -10,5 +10,5 @@ A Python GUI application that automatically organizes screenshots into session-b
 
 ## Installation
 ```bash
-pip install -r requirements.txt
+pip install watchdog
 
