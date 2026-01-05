@@ -63,7 +63,7 @@ def open_folder(path: str):
 
 def can_use_imagegrab() -> bool:
     try:
-        from PIL import ImageGrab  # noqa: F401
+        from PIL import ImageGrab
         return True
     except Exception:
         return False
