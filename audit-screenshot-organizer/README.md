@@ -19,6 +19,7 @@ A Python GUI tool that helps organize screenshots into clean, session based fold
 Install the required dependencies:
 
 ```bash
+# Currently only works on Windows
 pip install watchdog pillow playwright
 python -m playwright install
 
