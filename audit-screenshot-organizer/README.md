@@ -20,7 +20,7 @@ Install the required dependencies:
 
 ```bash
 pip install watchdog pillow playwright
-python3 playwright install
+python -m playwright install
 
 ```
 ## Usage
