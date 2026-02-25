@@ -15,26 +15,39 @@ import re
 DEFAULT_WINDOWS_SCREENSHOT = os.path.join(os.path.expanduser("~"), "Pictures", "Screenshots")
 DEFAULT_SCREENSHOT_FOLDER = DEFAULT_WINDOWS_SCREENSHOT
 
-BG = "#14161A"
-PANEL = "#1B1E24"
-ENTRY_BG = "#242833"
-ENTRY_FG = "#E7EAF0"
-TEXT = "#E7EAF0"
-MUTED = "#AAB1C1"
-LOG_BG = "#0F1115"
-LOG_FG = "#D7DBE6"
+BG = "#0A0E17"
+PANEL = "#121826"
+PANEL_ALT = "#101522"
+ENTRY_BG = "#1A2336"
+ENTRY_FG = "#E7EEFF"
+TEXT = "#E7EEFF"
+MUTED = "#9FB0CF"
+LOG_BG = "#0D1320"
+LOG_FG = "#DCE7FF"
+ACCENT = "#4EA1FF"
+ACCENT_HOVER = "#6AB2FF"
+ACCENT_ACTIVE = "#358EED"
+BORDER = "#25314B"
+HERO_TOP = "#1A243A"
+HERO_BOTTOM = "#0D1527"
 
-BTN_BG = "#2A2F3A"
-BTN_HOVER = "#353B49"
-BTN_ACTIVE = "#3F4656"
+TOOLBAR_BG = "#121A2A"
+TOOLBAR_BORDER = "#2A3958"
+TOOLBAR_TEXT = "#E7EEFF"
+TOOLBAR_MUTED = "#9FB0CF"
+TOOLBAR_BTN_BG = "#1B2740"
+TOOLBAR_BTN_HOVER = "#243253"
+TOOLBAR_BTN_ACTIVE = "#2F4270"
+LOG_MAX_LINES = 400
 
-TOOLBAR_BG = "#0E1117"
-TOOLBAR_BORDER = "#2A2E38"
-TOOLBAR_TEXT = "#E7EAF0"
-TOOLBAR_MUTED = "#C7CCDA"
-TOOLBAR_BTN_BG = "#242A36"
-TOOLBAR_BTN_HOVER = "#2E3646"
-TOOLBAR_BTN_ACTIVE = "#3A4458"
+
+def default_font_family() -> str:
+    sysname = platform.system()
+    if sysname == "Darwin":
+        return "SF Pro Text"
+    if sysname == "Windows":
+        return "Segoe UI"
+    return "Noto Sans"
 
 
 def ensure_unique_path(dest_path: str) -> str:
@@ -85,9 +98,13 @@ class MiniToolbar:
     def __init__(self, app):
         self.app = app
         self.win = tk.Toplevel(app.root)
-        self.win.geometry("600x64+220+120")
+        self.win.geometry("640x68+220+120")
         self.win.configure(bg=TOOLBAR_BG)
         self.win.attributes("-topmost", True)
+        try:
+            self.win.attributes("-alpha", 0.96)
+        except Exception:
+            pass
         self.win.resizable(False, False)
         self.win.overrideredirect(True)
 
@@ -101,7 +118,13 @@ class MiniToolbar:
         bar.pack(fill="both", expand=True, padx=8, pady=8)
 
         self.status = tk.StringVar(value="Ready")
-        status_label = tk.Label(bar, textvariable=self.status, bg=TOOLBAR_BG, fg=TOOLBAR_MUTED, font=("Arial", 10))
+        status_label = tk.Label(
+            bar,
+            textvariable=self.status,
+            bg=TOOLBAR_BG,
+            fg=TOOLBAR_MUTED,
+            font=(self.app.font_family, 10, "bold"),
+        )
         status_label.pack(side="right", padx=(10, 0))
 
         def mkbtn(label, cmd):
@@ -112,7 +135,10 @@ class MiniToolbar:
                 fg=TOOLBAR_TEXT,
                 padx=12,
                 pady=7,
-                font=("Arial", 11),
+                font=(self.app.font_family, 10, "bold"),
+                borderwidth=1,
+                relief="solid",
+                highlightthickness=0,
             )
 
             def enter(_):
@@ -348,8 +374,10 @@ class ScreenshotOrganizerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Screenshot Organizer")
-        self.root.geometry("760x560")
+        self.root.geometry("920x660")
+        self.root.minsize(840, 620)
         self.root.configure(bg=BG)
+        self.font_family = default_font_family()
 
         self.year = tk.StringVar(value=str(datetime.now().year))
         self.project = tk.StringVar(value="CSP")
@@ -381,6 +409,7 @@ class ScreenshotOrganizerApp:
 
         self.root.after(60, self.pump_ui_logs)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.update_status()
 
     def setup_style(self):
         style = ttk.Style()
@@ -391,25 +420,68 @@ class ScreenshotOrganizerApp:
 
         style.configure("TFrame", background=BG)
         style.configure("Panel.TFrame", background=PANEL)
+        style.configure("PanelAlt.TFrame", background=PANEL_ALT)
 
-        style.configure("TLabel", background=PANEL, foreground=TEXT)
+        style.configure("TLabel", background=PANEL, foreground=TEXT, font=(self.font_family, 10))
         style.configure("Root.TLabel", background=BG, foreground=TEXT)
         style.configure("MutedRoot.TLabel", background=BG, foreground=MUTED)
+        style.configure("Status.TLabel", background=PANEL_ALT, foreground=ACCENT, font=(self.font_family, 10, "bold"))
 
-        style.configure("TEntry", fieldbackground=ENTRY_BG, foreground=ENTRY_FG, insertcolor=ENTRY_FG)
+        style.configure("TEntry", fieldbackground=ENTRY_BG, foreground=ENTRY_FG, insertcolor=ENTRY_FG, bordercolor=BORDER)
 
-        style.configure("TButton", background=BTN_BG, foreground=TEXT, padding=8, borderwidth=0)
+        style.configure("TButton", background=PANEL_ALT, foreground=TEXT, padding=(12, 8), borderwidth=1, font=(self.font_family, 10))
         style.map(
             "TButton",
-            background=[("active", BTN_HOVER), ("pressed", BTN_ACTIVE)],
+            background=[("active", "#1C2840"), ("pressed", "#26375A")],
             foreground=[("active", TEXT), ("pressed", TEXT)],
         )
+        style.configure("Primary.TButton", background=ACCENT, foreground="#FFFFFF")
+        style.map(
+            "Primary.TButton",
+            background=[("active", ACCENT_HOVER), ("pressed", ACCENT_ACTIVE)],
+            foreground=[("active", "#FFFFFF"), ("pressed", "#FFFFFF")],
+        )
 
-        style.configure("TRadiobutton", background=BG, foreground=TEXT)
+        style.configure("TRadiobutton", background=BG, foreground=TEXT, font=(self.font_family, 10))
         style.map("TRadiobutton", foreground=[("active", TEXT)])
 
-        style.configure("TCheckbutton", background=BG, foreground=TEXT)
+        style.configure("TCheckbutton", background=BG, foreground=TEXT, font=(self.font_family, 10))
         style.map("TCheckbutton", foreground=[("active", TEXT)])
+
+        style.configure("Vertical.TScrollbar", background=PANEL_ALT, troughcolor=BG, bordercolor=BG, arrowcolor=MUTED)
+
+    def blend(self, start_hex: str, end_hex: str, t: float) -> str:
+        sr = int(start_hex[1:3], 16)
+        sg = int(start_hex[3:5], 16)
+        sb = int(start_hex[5:7], 16)
+        er = int(end_hex[1:3], 16)
+        eg = int(end_hex[3:5], 16)
+        eb = int(end_hex[5:7], 16)
+        r = int(sr + (er - sr) * t)
+        g = int(sg + (eg - sg) * t)
+        b = int(sb + (eb - sb) * t)
+        return f"#{r:02X}{g:02X}{b:02X}"
+
+    def build_hero(self, outer):
+        hero_wrap = tk.Frame(outer, bg=BG, highlightthickness=1, highlightbackground=BORDER, bd=0)
+        hero_wrap.pack(fill="x", pady=(14, 12), padx=14)
+        hero = tk.Canvas(hero_wrap, bg=HERO_TOP, height=138, highlightthickness=0, bd=0)
+        hero.pack(fill="x", expand=True)
+
+        def draw(event):
+            w = max(1, event.width)
+            h = max(1, event.height)
+            hero.delete("all")
+            for y in range(h):
+                t = y / h
+                color = self.blend(HERO_TOP, HERO_BOTTOM, t)
+                hero.create_line(0, y, w, y, fill=color)
+            hero.create_oval(w - 170, -40, w + 90, 120, fill="#26395C", outline="")
+            hero.create_oval(w - 300, -80, w - 70, 100, fill="#1F3152", outline="")
+            hero.create_text(24, 36, anchor="w", text="Screenshot Organizer", fill=TEXT, font=(self.font_family, 24, "bold"))
+            hero.create_text(24, 78, anchor="w", text="Automatic filing and Playwright capture", fill="#7FB5FF", font=(self.font_family, 10, "bold"))
+
+        hero.bind("<Configure>", draw)
 
     def build_scrollable_root(self):
         container = tk.Frame(self.root, bg=BG)
@@ -498,8 +570,12 @@ class ScreenshotOrganizerApp:
         self._scroll_units(1)
 
     def build_gui(self, outer):
-        top_panel = ttk.Frame(outer, style="Panel.TFrame")
-        top_panel.pack(fill="x", pady=(14, 12), padx=14)
+        self.build_hero(outer)
+
+        top_shell = tk.Frame(outer, bg=PANEL, highlightthickness=1, highlightbackground=BORDER)
+        top_shell.pack(fill="x", pady=(4, 12), padx=14)
+        top_panel = ttk.Frame(top_shell, style="Panel.TFrame")
+        top_panel.pack(fill="x", padx=14, pady=12)
 
         def add_row(r, label, var, col):
             ttk.Label(top_panel, text=label, style="TLabel").grid(row=r, column=col, sticky="w", padx=10, pady=8)
@@ -520,14 +596,21 @@ class ScreenshotOrganizerApp:
         ttk.Entry(top_panel, textvariable=self.output_base_folder, width=46).grid(row=3, column=1, sticky="w", padx=10, pady=8, columnspan=2)
         ttk.Button(top_panel, text="Browse", command=self.select_output_folder).grid(row=3, column=3, sticky="w", padx=10, pady=8)
 
-        mode_frame = tk.Frame(outer, bg=BG)
-        mode_frame.pack(fill="x", pady=(0, 8), padx=14)
+        mode_shell = tk.Frame(outer, bg=PANEL_ALT, highlightthickness=1, highlightbackground=BORDER)
+        mode_shell.pack(fill="x", pady=(0, 8), padx=14)
+        mode_frame = tk.Frame(mode_shell, bg=PANEL_ALT)
+        mode_frame.pack(fill="x", padx=14, pady=10)
 
         ttk.Label(mode_frame, text="Mode:", style="Root.TLabel").pack(side="left", padx=(0, 10))
         ttk.Radiobutton(mode_frame, text="Manual (Watch folder)", variable=self.mode, value="manual", command=self.on_mode_change).pack(side="left", padx=(0, 14))
         ttk.Radiobutton(mode_frame, text="Playwright (Website capture)", variable=self.mode, value="playwright", command=self.on_mode_change).pack(side="left", padx=(0, 14))
 
-        self.pw_frame = tk.Frame(outer, bg=BG)
+        self.status_label = ttk.Label(mode_frame, text="", style="Status.TLabel")
+        self.status_label.pack(side="right")
+
+        self.pw_shell = tk.Frame(outer, bg=PANEL_ALT, highlightthickness=1, highlightbackground=BORDER)
+        self.pw_frame = tk.Frame(self.pw_shell, bg=PANEL_ALT)
+        self.pw_frame.pack(fill="x", padx=14, pady=10)
         ttk.Label(self.pw_frame, text="URL:", style="Root.TLabel").grid(row=0, column=0, sticky="w", padx=0, pady=6)
         ttk.Entry(self.pw_frame, textvariable=self.pw_url, width=58).grid(row=0, column=1, sticky="w", padx=10, pady=6)
         ttk.Button(self.pw_frame, text="Capture Now", command=self.capture_now).grid(row=0, column=2, sticky="w", padx=10, pady=6)
@@ -535,10 +618,12 @@ class ScreenshotOrganizerApp:
         ttk.Label(self.pw_frame, text="Element selector (optional):", style="Root.TLabel").grid(row=2, column=0, sticky="w", padx=0, pady=6)
         ttk.Entry(self.pw_frame, textvariable=self.pw_selector, width=34).grid(row=2, column=1, sticky="w", padx=10, pady=6)
 
-        button_frame = tk.Frame(outer, bg=BG)
-        button_frame.pack(fill="x", pady=(8, 10), padx=14)
+        button_shell = tk.Frame(outer, bg=PANEL, highlightthickness=1, highlightbackground=BORDER)
+        button_shell.pack(fill="x", pady=(8, 10), padx=14)
+        button_frame = tk.Frame(button_shell, bg=PANEL)
+        button_frame.pack(fill="x", padx=14, pady=10)
 
-        ttk.Button(button_frame, text="Start Session", command=self.start_session).pack(side="left", padx=(0, 10))
+        ttk.Button(button_frame, text="Start Session", command=self.start_session, style="Primary.TButton").pack(side="left", padx=(0, 10))
         ttk.Button(button_frame, text="New Session", command=self.new_session).pack(side="left", padx=(0, 10))
         ttk.Button(button_frame, text="Stop Watching", command=self.stop_watching).pack(side="left", padx=(0, 10))
 
@@ -547,35 +632,42 @@ class ScreenshotOrganizerApp:
 
         ttk.Button(button_frame, text="Open Session Folder", command=self.open_session_folder).pack(side="left")
 
-        self.current_session_label = tk.Label(outer, text="Current Session: None", bg=BG, fg=MUTED, font=("Arial", 12))
+        self.current_session_label = tk.Label(outer, text="Current Session: None", bg=BG, fg=MUTED, font=(self.font_family, 11, "bold"))
         self.current_session_label.pack(pady=(0, 10), anchor="w", padx=14)
 
+        log_shell = tk.Frame(outer, bg=LOG_BG, highlightthickness=1, highlightbackground=BORDER)
+        log_shell.pack(fill="both", expand=True, padx=14, pady=(0, 14))
         self.log = tk.Text(
-            outer,
+            log_shell,
             bg=LOG_BG,
             fg=LOG_FG,
             wrap="word",
             height=10,
             bd=0,
             highlightthickness=1,
-            highlightbackground="#232733",
+            highlightbackground=BORDER,
             insertbackground=TEXT,
+            relief="flat",
+            font=(self.font_family, 10),
         )
-        self.log.pack(fill="both", expand=True, padx=14, pady=(0, 14))
+        self.log.pack(fill="both", expand=True, padx=12, pady=10)
+        self.log.configure(state="disabled")
 
         self.on_mode_change()
 
     def on_mode_change(self):
-        self.pw_frame.pack_forget()
+        self.pw_shell.pack_forget()
         if self.mode.get() == "playwright":
             if self.running:
                 self.stop_watching()
-            self.pw_frame.pack(fill="x", pady=(0, 6), padx=14)
+            self.pw_shell.pack(fill="x", pady=(0, 6), padx=14)
+        self.update_status()
 
     def on_toolbar_visibility_changed(self, visible: bool):
         self.toolbar_visible = visible
         if hasattr(self, "toggle_toolbar_btn"):
             self.toggle_toolbar_btn.config(text="Hide Mini Toolbar" if visible else "Show Mini Toolbar")
+        self.update_status()
 
     def toggle_toolbar(self):
         if not self.toolbar:
@@ -586,15 +678,22 @@ class ScreenshotOrganizerApp:
             self.toolbar.show()
 
     def ui_log(self, message: str):
-        self.ui_log_queue.put(message)
+        now = datetime.now().strftime("%H:%M:%S")
+        self.ui_log_queue.put(f"[{now}] {message}")
 
     def pump_ui_logs(self):
         drained = 0
         try:
             while drained < 50:
                 msg = self.ui_log_queue.get_nowait()
+                self.log.configure(state="normal")
                 self.log.insert(tk.END, f"{msg}\n")
+                line_count = int(self.log.index("end-1c").split(".")[0])
+                if line_count > LOG_MAX_LINES:
+                    extra = line_count - LOG_MAX_LINES
+                    self.log.delete("1.0", f"{extra + 1}.0")
                 self.log.see(tk.END)
+                self.log.configure(state="disabled")
                 drained += 1
         except queue.Empty:
             pass
@@ -618,26 +717,56 @@ class ScreenshotOrganizerApp:
         if self.mode.get() == "manual" and self.running:
             messagebox.showinfo("Info", "Session already running!")
             return
-        self.create_session_folder()
+        if not self.create_session_folder():
+            return
         if self.mode.get() == "manual":
             self.start_watching()
         else:
             self.ui_log("Playwright mode ready. Click 'Capture Now' when you want screenshots.")
 
     def new_session(self):
-        self.session_number.set(self.session_number.get() + 1)
-        self.create_session_folder()
+        current = self.session_number.get()
+        self.session_number.set(max(1, current + 1))
+        if not self.create_session_folder():
+            return
         self.ui_log(f"Started new session: {self.active_session_folder}")
 
     def create_session_folder(self):
-        session_index = str(self.session_number.get()).zfill(3)
-        folder_name = f"{self.year.get()}-{self.project.get()}-{self.audit_type.get()}-{session_index}"
+        project = self.safe_name(self.project.get())
+        audit_type = self.safe_name(self.audit_type.get())
+        year = self.safe_name(self.year.get())
+        if not project or not audit_type or not year:
+            messagebox.showerror("Error", "Year, Project, and Audit Type are required.")
+            return False
+
+        try:
+            session_num = int(self.session_number.get())
+        except Exception:
+            messagebox.showerror("Error", "Start Index must be a number.")
+            return False
+        if session_num < 1:
+            session_num = 1
+            self.session_number.set(1)
+
+        session_index = str(session_num).zfill(3)
+        folder_name = f"{year}-{project}-{audit_type}-{session_index}"
         self.active_session_folder = os.path.join(self.output_base_folder.get(), folder_name)
-        os.makedirs(self.active_session_folder, exist_ok=True)
+        try:
+            os.makedirs(self.active_session_folder, exist_ok=True)
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not create session folder:\n{e}")
+            return False
+
         self.current_session_label.config(text=f"Current Session: {folder_name}")
         self.ui_log(f"Session folder created: {self.active_session_folder}")
+        self.update_status()
+        return True
 
     def start_watching(self):
+        if self.running:
+            self.ui_log("Watcher already active.")
+            self.update_status()
+            return
         watch_path = self.screenshot_folder.get()
         if not os.path.isdir(watch_path):
             messagebox.showerror("Error", f"Source folder not found:\n{watch_path}")
@@ -648,6 +777,7 @@ class ScreenshotOrganizerApp:
         self.observer.start()
         self.running = True
         self.ui_log(f"Started watching: {watch_path}")
+        self.update_status()
 
     def stop_watching(self):
         if self.observer:
@@ -660,6 +790,7 @@ class ScreenshotOrganizerApp:
         if self.running:
             self.ui_log("Stopped watching.")
         self.running = False
+        self.update_status()
 
     def process_queue(self):
         while True:
@@ -713,9 +844,14 @@ class ScreenshotOrganizerApp:
             if not url:
                 self.ui_log("Playwright: URL is empty.")
                 return
+            if not re.match(r"^https?://", url, flags=re.IGNORECASE):
+                url = f"https://{url}"
 
             fullpage = bool(self.pw_fullpage.get())
             selector = self.pw_selector.get().strip()
+            if not fullpage and not selector:
+                self.ui_log("Playwright: nothing to capture. Enable full page or provide a selector.")
+                return
 
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
@@ -743,9 +879,20 @@ class ScreenshotOrganizerApp:
         self.ensure_session()
         open_folder(self.active_session_folder)
 
+    def update_status(self):
+        mode = "Manual" if self.mode.get() == "manual" else "Playwright"
+        watch = "Watching" if self.running else "Idle"
+        toolbar = "Toolbar On" if self.toolbar_visible else "Toolbar Off"
+        self.status_label.config(text=f"{mode} | {watch} | {toolbar}")
+
     def on_close(self):
         if self.running:
             self.stop_watching()
+        if self.toolbar:
+            try:
+                self.toolbar.win.destroy()
+            except Exception:
+                pass
         self.root.destroy()
 
 
